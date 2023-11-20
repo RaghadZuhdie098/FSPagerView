@@ -97,10 +97,10 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
     @IBInspectable
     open var automaticSlidingInterval: CGFloat = 0.0 {
         didSet {
-            self.cancelTimer()
-            if self.automaticSlidingInterval > 0 {
+            //self.cancelTimer()
+            //if self.automaticSlidingInterval > 0 {
                 self.startTimer()
-            }
+           // }
         }
     }
     
@@ -215,7 +215,7 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
     }
     
     @objc open fileprivate(set) dynamic var currentIndex: Int = 0
-    
+    @objc open  dynamic var animationDirection: String = "Left"
     // MARK: - Private properties
     
     internal weak var collectionViewLayout: FSPagerViewLayout!
@@ -372,6 +372,11 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
         }
         let index = indexPath.item % self.numberOfItems
         function(self,index)
+//        // Update the selected index here before calling the delegate method
+//            self.currentIndex = indexPath.item % self.numberOfItems
+//
+//            // Use the updated currentIndex in the delegate method
+//            function(self, self.currentIndex)
     }
     
     public func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -480,7 +485,7 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
         self.collectionViewLayout.needsReprepare = true;
         self.collectionView.reloadData()
     }
-    
+
     /// Selects the item at the specified index and optionally scrolls it into view.
     ///
     /// - Parameters:
@@ -491,6 +496,11 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
         let indexPath = self.nearbyIndexPath(for: index)
         let scrollPosition: UICollectionView.ScrollPosition = self.scrollDirection == .horizontal ? .centeredHorizontally : .centeredVertically
         self.collectionView.selectItem(at: indexPath, animated: animated, scrollPosition: scrollPosition)
+//        // Update the currentIndex before selecting the item
+//           self.currentIndex = index
+//
+//           // Call selectItem method with the updated indexPath
+//           self.collectionView.selectItem(at: indexPath, animated: animated, scrollPosition: scrollPosition)
     }
     
     /// Deselects the item at the specified index.
@@ -564,6 +574,7 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
         let collectionView = FSPagerCollectionView(frame: CGRect.zero, collectionViewLayout: collectionViewLayout)
         collectionView.dataSource = self
         collectionView.delegate = self
+//        collectionView.allowsSelection = false
         collectionView.backgroundColor = UIColor.clear
         self.contentView.addSubview(collectionView)
         self.collectionView = collectionView
@@ -576,21 +587,30 @@ open class FSPagerView: UIView,UICollectionViewDataSource,UICollectionViewDelega
             return
         }
         self.timer = Timer.scheduledTimer(timeInterval: TimeInterval(self.automaticSlidingInterval), target: self, selector: #selector(self.flipNext(sender:)), userInfo: nil, repeats: true)
-        RunLoop.current.add(self.timer!, forMode: .common)
+        RunLoop.current.add(self.timer!, forMode: .tracking)
     }
-    
+
+
+    func autoScroll () {
+//        let co = collectionView.contentOffset.x
+//        let no = co + 0.5
+//        self.collectionView.contentOffset = CGPoint(x: no, y: 0)
+        let co = collectionView.contentOffset.x
+        if animationDirection == "Left" {
+            let no = co - 0.5
+            self.collectionView.contentOffset = CGPoint(x: no, y: 0)
+        }
+        else {
+            let no = co + 0.5
+            self.collectionView.contentOffset = CGPoint(x: no, y: 0)
+        }
+    }
     @objc
     fileprivate func flipNext(sender: Timer?) {
         guard let _ = self.superview, let _ = self.window, self.numberOfItems > 0, !self.isTracking else {
             return
         }
-        let contentOffset: CGPoint = {
-            let indexPath = self.centermostIndexPath
-            let section = self.numberOfSections > 1 ? (indexPath.section+(indexPath.item+1)/self.numberOfItems) : 0
-            let item = (indexPath.item+1) % self.numberOfItems
-            return self.collectionViewLayout.contentOffset(for: IndexPath(item: item, section: section))
-        }()
-        self.collectionView.setContentOffset(contentOffset, animated: true)
+        autoScroll ()
     }
     
     fileprivate func cancelTimer() {
