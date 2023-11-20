@@ -8,8 +8,7 @@
 //  https://github.com/WenchaoD
 //
 //  FSPagerView is an elegant Screen Slide Library implemented primarily with UICollectionView. It is extremely helpful for making Banner、Product Show、Welcome/Guide Pages、Screen/ViewController Sliders.
-//
-
+// MARK: - From Forked Copy
 import UIKit
 
 @objc
